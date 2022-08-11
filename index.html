@@ -1,0 +1,158 @@
+<html lang="en">
+<head>
+    <title>
+        Code Editor
+    </title>
+    <link rel="stylesheet" href="css/maincontent.css">
+    <link rel="stylesheet" href="css/titlebar.css">
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/snippetStyles.css">
+
+  
+
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.menu.js"></script>
+    <script type="text/javascript" src="js/ace.js" charset="utf-8"></script>
+    <script type="text/javascript" src="js/ext-language_tools.js" charset="utf-8"></script>
+    <script src="./js/fileHandling.js"></script>
+   
+    
+
+    <style type="text/css" media="screen">
+        #codeslate_0{
+            position: relative;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <div class="titleBar titleBarStyle preventSelect">
+            <div class="windowTitle draggable" style="display: block;"></div>
+            <div class="windowControls windowControlStyle ">
+                <button id="Minimize">-</button>
+                <button id="Maximize">[]</button>
+                <button id="Quit">X</button>
+            </div>
+            <div id="menu-bar" class="titleDrag">
+                <ul class="main-menu">
+                    <li>
+                        File
+                        <ul>
+                            
+                           <li class="icon save" onclick='createNewFile()'><a href="#">New File<span>Ctrl+N</span></a></li>
+                           <li class="separator"></li>
+                            <li onclick="createNewFolder()">New Folder</li>
+                            <li class="separator"></li>
+                            <li class="icon open" onclick='openfile()'><a href="javascript:void(0)">Open<span>Ctrl+O</span></a></li>
+                            <li class="separator"></li>
+                            <li class="icon save" onclick='saveFile()'><a href="javascript:void(0)">Save<span>Ctrl+S</span></a></li>
+                            <li class="separator"></li>
+                            <li class="icon save" onclick="saveFile()"><a href="javascript:void(0)">Save As</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        Window
+                        <ul>
+                            <li class="icon save" onclick="fullScreen()">Full Screen<span>F11</span></a></li>
+                        </ul>
+                    </li>
+    
+    
+                    <li>
+                        Settings
+                        <ul>
+                            <li >Themes
+                                <ul>
+                                    <li onclick='themeSeeting("dark")'>Dark</li>
+                                    <li onclick='themeSeeting("light")'>Light</li>
+                                </ul>
+                                
+                            </li>
+                        </ul>
+                    </li>
+    
+                    <li>
+                        Help
+                        <ul>
+                            <li onclick='showShortcuts()'>Shortcuts
+                                <ul>
+                                    <li>Ctrl+N New file</li>
+                                    <li>Ctrl+O Open file</li>
+                                    <li>Ctrl+R Run</li>
+                                    <li>Ctrl+S Save</li>
+                                    <li>Ctrl+Shift+N New Folder</li>
+                                    <li>Ctrl+Shift+W ChangeDirectory</li>
+                                </ul>
+                            </li>
+                            <li class="separator"></li>
+                            <li>Desclaimer
+                                <ul>
+                                    <li>This is Beta Version</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <burron class="run" onclick="runCode()">Run</burron>
+                </ul>   
+                <div id="DirectoryPath">
+                </div>
+            </div> 
+        </div>
+        <div class="codingScreen ">
+            <div class="explorerContainer explorerContainerStyle">
+                
+                <div class="fileContainer">
+                    <li>
+                       
+                    </li>
+                </div>
+                    <button id="changeFolder" onclick="ChooseWorkingDirectory()">Choose Working Directory</button>
+                </div>
+
+            <div class="editorContainer">
+                <div class="code" >
+                <div id="initialScreen">
+                    <div class="GuideUi" onclick="ChooseWorkingDirectory()">
+                        Choose Work Space <br>
+                        Ctrl+Shift+W
+                    </div>
+                    <div class="GuideUi" onclick="createNewFile()">
+                        Create File <br>
+                        Ctrl+N
+                    </div>
+                    <div class="GuideUi" onclick="openfile()">
+                        Open Folder <br>
+                        Ctrl+O
+                    </div>
+                </div>
+                    
+                </div>
+                
+            </div>
+            <div class="widgetsContainer widgetContainerStyle">
+                <div class="widgetDrawer">
+                    <div class="widgetHeader">
+                    </div>
+                </div>
+            </div>
+         </div>
+        
+    </div>
+    <script src="./js/titleBarStuff.js"></script>
+    <script src="./js/codeSlate.js"></script>
+    <script src="./js/shortcut.js"></script>
+     <script src="./js/RunCode.js"></script>
+
+    <script>
+        var editor = ace.edit("codeslate_0");
+        editor.setTheme("ace/theme/twilight");
+        editor.session.setMode("ace/mode/javascript");
+    </script>
+</body>
+</html>

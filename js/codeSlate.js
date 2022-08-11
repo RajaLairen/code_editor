@@ -1,0 +1,108 @@
+var {ipcRenderer}  = require('electron');
+var fileTabCount=0;
+var openedTabs=0;
+var untitleCount=0;
+var panelcount=0;
+
+var editorId;
+var codeSlatId;
+
+var activePanel="";
+var codeId="";
+var codeContent="";
+
+
+function createNewFile(){
+    var code=document.querySelectorAll(".code");
+    code.forEach((codePanel)=>{
+        codePanel.classList.add("codeSlateDeactivate")
+    });
+
+    addNewExplorerTab();
+
+    openCodeSlate(fileTabCount);
+}
+
+var contentFile=""
+var getFilePath=""
+
+ipcRenderer.on("file",(event,_filePath,_content)=>{
+    contentFile=_content;
+    getFilePath=_filePath;
+    createNewFile();
+})
+
+function addNewExplorerTab(){
+    fileTabCount++;
+    openedTabs++;
+    untitleCount++;
+    panelcount++;
+
+    var filname="Untitle -"+untitleCount;
+    activePanel="panel"+panelcount
+
+    $(".fileContainer").append("<li><span id='closeTabButton'>x</span><div class='fileNameSpan' name='panel"+panelcount+"'>"+filname+"</div></li>");
+}
+
+document.querySelector(".fileContainer").addEventListener('click',(sender)=>{
+    
+    let currentpanel=(sender.path[0].getAttribute('name'));
+    activePanel=sender.path[0].getAttribute('name');
+    ipcRenderer.send("getFilePath",activePanel);
+    var code=document.querySelectorAll(".code");
+    code.forEach((codePanel)=>{
+        codePanel.classList.add("codeSlateDeactivate");
+        if(currentpanel==(codePanel.getAttribute('name'))){
+            //activePanel==codePanel.children[0].getAttribute('id')
+            codeId=codePanel.children[0].getAttribute("id");
+            codePanel.focus();
+            codePanel.classList.remove('codeSlateDeactivate');
+            console.log(codePanel.parentNode)
+        }
+    });
+    
+    
+})
+
+
+function getFileContent(){
+    var content=ace.edit(codeId);
+    codeContent=content.getValue();
+    return {_codeContent:codeContent,_activePanel:activePanel};
+}
+
+
+
+
+function openCodeSlate(tabNumber){
+    editorId="codeslate_"+tabNumber;
+    codeSlatId="codestat_"+tabNumber
+
+
+
+
+//     <div class="code codeSlateDeactivate">
+//     <div id="editor1" class="codeSlateActive" >
+//     function foo(items) {
+//     var x = "All this is syntax highlighted";
+//     return x;
+//     }</div>
+//     <div class="codeSlat codeSlateActive" >
+//         <div class="currentLang">JavaScript</div>
+//     </div>
+// </div>
+
+
+    var editorStyles="position:relative;"+"top:0;right:0;bottom:90;left:0;"+"font-size:12pt;font-weight:normal;white-space:nowrap;display:block;z-index:20";
+    //Code area
+    var editorDesign="<div class='code' name='panel"+panelcount+"'><div id='"+editorId+"' style='"+editorStyles+"'></div><div class='outputCode'>Output:</div><div class='codeSlat'><div class='currentLang'>JAVA SCRIPT</div></div></div>";
+
+    $('.editorContainer').append(editorDesign);
+
+    var editor=ace.edit(editorId);
+    editor.setTheme("ace/theme/twilight");
+    editor.session.setMode("ace/mode/javascript");
+    editor.setValue(contentFile);
+    codeId=editorId;
+    contentFile="";
+}

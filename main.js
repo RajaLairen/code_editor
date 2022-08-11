@@ -1,0 +1,189 @@
+// main.js
+
+// Modules to control application life and create native browser window
+const { app, BrowserWindow,ipcMain} = require('electron')
+const path = require('path')
+const { electron } = require('process')
+const {dialog}=require('electron')//OR const dialog=electron.dialog
+const ipc=ipcMain
+const fs=require('fs')
+const prompt=require('electron-prompt');
+const { type } = require('os')
+let location;
+var isFullScreen=false;
+var isWorkingDirectoryExist=false;
+
+var runFile;
+var filePathArray=[];
+
+var isNotOpen=true;
+var openPath="";
+
+let mainWindow;
+
+const createWindow = () => {
+  // Create the browser window.
+    mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    minHeight:500,
+    minWidth:500,
+    frame:false,//disable window default frame
+   
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      preload: path.join(__dirname, 'preload.js'),
+    }
+  })
+
+  // and load the index.html of the app.
+  mainWindow.loadFile('index.html')
+
+  // Open the DevTools.
+  // mainWindow.webContents.openDevTools()
+
+  ipc.on('closeApp',()=>{
+    mainWindow.close();
+  })
+
+  ipc.on('minimize',()=>{
+    mainWindow.minimize();
+  })
+
+  ipc.on('maximize',()=>{
+
+    if(mainWindow.isMaximized()){
+      mainWindow.restore();
+    }
+    else{
+      mainWindow.maximize();
+    }
+  })
+
+  ipc.on("fullScreen",()=>{
+    if(!isFullScreen){
+      mainWindow.setFullScreen(true);
+    }
+    else{
+      mainWindow.setFullScreen(false);
+    }
+    isFullScreen=!isFullScreen;
+  })
+
+  ipc.on('openFile',async(event,activePanel)=>{
+    const {filePaths}=await dialog.showOpenDialog({properties:['openFile']});
+    const file=filePaths[0]
+    const content=fs.readFileSync(file,"utf-8")
+    mainWindow.webContents.send("file",file,content);
+    isNotOpen=true;
+    location=file;
+    let panelNumber=parseInt(activePanel.slice(5))
+    activePanel=activePanel.replace(panelNumber,++panelNumber);
+    filePathArray[activePanel]=location;
+    openPath=location;
+    mainWindow.webContents.send("openfileActivePanel",location,activePanel);
+    runFile=file;
+    mainWindow.webContents.send("workingDirectory",location);
+  })
+
+  ipc.on("RunBatFile",(event)=>{
+    const batFileContent="@echo off \n javac "+runFile+" \n java "+runFile+" \n pause";
+    fs.writeFileSync("./Bat/temp.bat",batFileContent,'utf-8');
+    mainWindow.webContents.send("RunBatFileContent",batFileContent);
+  })
+  ipc.on('saveFile',async(event,content,activePanel)=>{
+    mainWindow.webContents.send("ActivePanel",activePanel);
+    console.log(activePanel);
+    let filePathlocation=""
+      if(typeof filePathArray[activePanel]==='undefined'){
+        try {
+          const file=await dialog.showSaveDialog([BrowserWindow,'error'],)
+        filePathlocation= file.filePath;
+        NotSave=false;
+        fs.writeFileSync(filePathlocation,content,'utf-8');
+        console.log(filePathlocation);
+        location=filePathlocation;
+        filePathArray[activePanel]=location;
+        mainWindow.webContents.send("asynReply",filePathlocation);
+
+        } catch (error) {
+          //Not save the file
+        }
+      }
+      else{
+        if(isNotOpen){
+          fs.writeFileSync(filePathArray[activePanel],content,'utf-8');
+          isNotOpen=false;
+        }
+        else{
+          fs.writeFileSync(filePathArray[activePanel],content,'utf-8');
+        }
+      }
+
+      runFile=filePathArray[activePanel];
+  })
+
+  ipc.on("getFilePath",(event,activePanel)=>{
+    runFile=filePathArray[activePanel];
+    mainWindow.webContents.send("filePathcontent",runFile);
+  })
+  
+  ipc.on("ChooseWorkingDirectory",async(event)=>{
+    isWorkingDirectoryExist=true;
+    let location=await dialog.showOpenDialog({properties:['openDirectory']});
+    workingDirectoryPath=(location.filePaths[0]);
+  })
+
+  ipc.on("createNewFolder",async(event)=>{
+    if(isWorkingDirectoryExist){
+      let input= await prompt({title:'CreatingFolder',label:'FolderName',type:'input',icon:'./img/Folder.png'});
+      fs.mkdirSync(workingDirectoryPath+"\\"+input);
+    }
+    else{
+      await dialog.showMessageBox({type:"warning",title:"Warning",detail:"Choose Working Directory First"});
+    }
+    
+  })
+
+  ipc.on("run",(event)=>{
+    event.sender.send('RunReply',runFile);
+  })
+}
+
+// ShorCutKey in main.js
+
+// app.whenReady().then(() => {
+//   globalShortcut.register('CommandOrControl+N', () => {
+//     promiseIpc.send('getRendererData', webContentsForRenderer)
+//   })
+// })
+
+
+
+
+
+
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.whenReady().then(() => {
+  createWindow()
+
+  app.on('activate', () => {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
+
+// Quit when all windows are closed, except on macOS. There, it's common
+// for applications and their menu bar to stay active until the user quits
+// explicitly with Cmd + Q.
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit()
+})
+
+// In this file you can include the rest of your app's specific main process
+// code. You can also put them in separate files and require them here.

@@ -1,0 +1,17 @@
+{
+  "name": "codeeditor",
+  "version": "1.0.0",
+  "description": "DesktopCodeEditor",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Raja",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^17.0.0"
+  },
+  "dependencies": {
+    "electron-prompt": "^1.7.0"
+  }
+}
